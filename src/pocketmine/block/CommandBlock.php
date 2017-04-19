@@ -24,23 +24,25 @@
 
 namespace pocketmine\block;
 
-class RedstoneLamp extends Solid{
-	protected $id = self::REDSTONE_LAMP;
-	
+use pocketmine\item\Item;
+
+class CommandBlock extends Solid{
+	protected $id = self::COMMAND_BLOCK;
+
 	public function __construct($meta = 0){
 		$this->meta = $meta;
 	}
 
-	public function getLightLevel(){
-		return 0;
+	public function canBeActivated() : bool {
+		return true;
 	}
 
 	public function getName() : string{
-		return "Redstone Lamp";
+		return "Command Block";
 	}
 
-	public function turnOn(){
-		$this->getLevel()->setBlock($this, new LitRedstoneLamp(), true, true);
-		return true;
+	public function getHardness() {
+		return -1;
 	}
+	
 }

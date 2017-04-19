@@ -268,6 +268,7 @@ class Block extends Position implements BlockIds, Metadatable{
 			self::$list[self::STONE_PRESSURE_PLATE] = StonePressurePlate::class;
 			self::$list[self::LIGHT_WEIGHTED_PRESSURE_PLATE] = LightWeightedPressurePlate::class;
 			self::$list[self::HEAVY_WEIGHTED_PRESSURE_PLATE] = HeavyWeightedPressurePlate::class;
+			self::$list[self::REDSTONE_WIRE] = RedstoneWire::class;
 			self::$list[self::LIT_REDSTONE_LAMP] = LitRedstoneLamp::class;
 			self::$list[self::REDSTONE_LAMP] = RedstoneLamp::class;
 			self::$list[self::REDSTONE_TORCH] = RedstoneTorch::class;
@@ -293,6 +294,7 @@ class Block extends Position implements BlockIds, Metadatable{
 			self::$list[self::INVISIBLE_BEDROCK] = InvisibleBedrock::class;
 			self::$list[self::HOPPER_BLOCK] = Hopper::class;
 			self::$list[self::DRAGON_EGG] = DragonEgg::class;
+			self::$list[self::COMMAND_BLOCK] = CommandBlock::class;
 
 			foreach(self::$list as $id => $class){
 				if($class !== null){
