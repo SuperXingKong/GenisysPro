@@ -8,22 +8,13 @@
  * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
  * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
- *  _____            _               _____           
- * / ____|          (_)             |  __ \          
- *| |  __  ___ _ __  _ ___ _   _ ___| |__) | __ ___  
- *| | |_ |/ _ \ '_ \| / __| | | / __|  ___/ '__/ _ \ 
- *| |__| |  __/ | | | \__ \ |_| \__ \ |   | | | (_) |
- * \_____|\___|_| |_|_|___/\__, |___/_|   |_|  \___/ 
- *                         __/ |                    
- *                        |___/                     
- *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author GenisysPro
- * @link https://github.com/GenisysPro/GenisysPro
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
  *
  *
 */
@@ -36,7 +27,7 @@ namespace {
 				case is_array($var):
 					echo str_repeat("  ", $cnt) . "array(" . count($var) . ") {" . PHP_EOL;
 					foreach($var as $key => $value){
-						echo str_repeat("  ", $cnt + 1) . "[" . (is_int($key) ? $key : '"' . $key . '"') . "]=>" . PHP_EOL;
+						echo str_repeat("  ", $cnt + 1) . "[" . (is_integer($key) ? $key : '"' . $key . '"') . "]=>" . PHP_EOL;
 						++$cnt;
 						safe_var_dump($value);
 						--$cnt;
@@ -76,13 +67,13 @@ namespace {
 namespace pocketmine {
 	use pocketmine\utils\Binary;
 	use pocketmine\utils\MainLogger;
-	use pocketmine\utils\ServerKiller;
-	use pocketmine\utils\Terminal;
+
+    use pocketmine\utils\Terminal;
 	use pocketmine\utils\Utils;
 	use pocketmine\wizard\Installer;
 
 	const VERSION = "";
-	const API_VERSION = "3.0.0-ALPHA4";
+	const API_VERSION = "3.0.1";
 	const CODENAME = "Starry";
 	const GENISYS_API_VERSION = '2.0.0';
 
@@ -122,7 +113,7 @@ namespace pocketmine {
 	$autoloader->register(true);
 
 
-	set_time_limit(0); //Who set it to 30 seconds?!?!
+	set_time_limit(0);
 
 	gc_enable();
 	error_reporting(-1);
@@ -441,6 +432,11 @@ namespace pocketmine {
 		++$errors;
 	}
 
+	if(!extension_loaded("sqlite3")){
+		$logger->critical("Unable to find the SQLite3 extension.");
+		++$errors;
+	}
+
 	if(!extension_loaded("zlib")){
 		$logger->critical("Unable to find the Zlib extension.");
 		++$errors;
@@ -463,51 +459,31 @@ namespace pocketmine {
 	@define("INT32_MASK", is_int(0xffffffff) ? 0xffffffff : -1);
 	@ini_set("opcache.mmap_base", bin2hex(random_bytes(8))); //Fix OPCache address errors
 
+	$lang = "unknown";
 	if(!file_exists(\pocketmine\DATA . "server.properties") and !isset($opts["no-wizard"])){
-		$installer = new Installer();
-		if(!$installer->run()){
-			$logger->shutdown();
-			$logger->join();
-			exit(-1);
-		}
-	}
-
-	if(\Phar::running(true) === ""){
-		$logger->warning("Non-packaged Genisys installation detected, do not use on production.");
+		$inst = new Installer();
+		$lang = $inst->getDefaultLang();
 	}
 
 	ThreadManager::init();
-	new Server($autoloader, $logger, \pocketmine\PATH, \pocketmine\DATA, \pocketmine\PLUGIN_PATH);
+	new Server($autoloader, $logger, \pocketmine\PATH, \pocketmine\DATA, \pocketmine\PLUGIN_PATH, $lang);
 
 	$logger->info("Stopping other threads");
 
-	$killer = new ServerKiller(8);
-	$killer->start();
-
-	$erroredThreads = 0;
 	foreach(ThreadManager::getInstance()->getAll() as $id => $thread){
-		$logger->debug("Stopping " . $thread->getThreadName() . " thread");
-		try{
-			$thread->quit();
-			$logger->debug($thread->getThreadName() . " thread stopped successfully.");
-		}catch(\ThreadException $e){
-			++$erroredThreads;
-			$logger->debug("Could not stop " . $thread->getThreadName() . " thread: " . $e->getMessage());
-		}
+		$logger->debug("Stopping " . (new \ReflectionClass($thread))->getShortName() . " thread");
+		$thread->quit();
 	}
 
 	$logger->shutdown();
 	$logger->join();
 
-	echo Terminal::$FORMAT_RESET . PHP_EOL;
+	//echo "Server has stopped" . Terminal::$FORMAT_RESET . "\n";
 
-	if($erroredThreads > 0){
-		if(\pocketmine\DEBUG > 1){
-			echo "Some threads could not be stopped, performing a force-kill" . PHP_EOL . PHP_EOL;
-		}
-		kill(getmypid());
-	}else{
-		exit(0);
-	}
+	$logger->info(Utils::getThreadCount() . " threads has stopped");//add threads count
+
+	$logger->info("Server has stopped");
+
+	exit(0);
 
 }
