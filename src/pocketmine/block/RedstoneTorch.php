@@ -163,7 +163,7 @@ class RedstoneTorch extends RedstoneSource{
 				if(!in_array($hash = Level::blockHash($block->x, $block->y, $block->z), $notCheck)){
 					if(!$this->checkPower($block)){
 						/** @var $block ActiveRedstoneLamp */
-						if($block->getId() == Block::LIT_REDSTONE_LAMP) $block->turnOff();
+						if($block->getId() == Block::ACTIVE_REDSTONE_LAMP) $block->turnOff();
 					}
 
 					$block = $this->getSide(Vector3::SIDE_DOWN, 2);
